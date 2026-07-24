@@ -15,6 +15,10 @@ int main(int argc, char * argv[]) {
         return 0;
     }
 
+    // we do not use c stdio nor c++ cin, so unsync these
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
     ifstream in(argv[1], ios_base::in | ios_base::binary);
 
     // read 80-char header - leave a byte for null term
@@ -58,13 +62,20 @@ int main(int argc, char * argv[]) {
         // can help with de-duplication
         if (t[0] < t[1])
             if (t[0] < t[2])
-                t_set.insert( { t[0], t[1], t[2] } );
-            else
+                if (t[1] < t[2]) // A B C
+                    t_set.insert( { t[0], t[1], t[2] } );
+                else             // A C B
+                    t_set.insert( { t[0], t[2], t[1] } );
+            else                 // B C A
                 t_set.insert( { t[2], t[0], t[1] } );
-        else if (t[1] < t[2])
-            t_set.insert( { t[1], t[2], t[0] } );
         else
-            t_set.insert( { t[2], t[0], t[1] } );
+            if (t[1] < t[2])
+                if (t[0] < t[2]) // B A C
+                    t_set.insert( { t[1], t[0], t[2] } );
+                else             // C A B
+                    t_set.insert( { t[1], t[2], t[0] } );
+            else                 // C B A
+                t_set.insert( { t[2], t[1], t[0] } );
     }
 
     in.close();
@@ -81,9 +92,7 @@ int main(int argc, char * argv[]) {
     cout << "  vertex_vectors {" << endl << "    " << v_map.size() << endl;
 
     // sets up output formatting for full precision available from float
-    cout.precision(numeric_limits<float>::max_digits10 - 1);
-
-    cout << scientific;
+    cout.precision(numeric_limits<float>::max_digits10);
 
     // iterate the v-map and write it out
     unsigned int i = 0;
